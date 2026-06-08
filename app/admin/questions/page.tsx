@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createQuestionAction, toggleQuestionAction } from "@/app/actions/admin";
+import DeleteSampleButton from "@/components/admin/DeleteSampleButton";
 
 const PAGE_SIZE = 15;
 
@@ -53,9 +54,12 @@ export default async function AdminQuestionsPage({
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-beauty-neutral">문제 관리</h1>
-        <Link href="/admin/questions/upload" className="btn-outline px-4 py-2 text-sm">
-          ⬆️ 일괄 업로드
-        </Link>
+        <div className="flex gap-2">
+          <DeleteSampleButton />
+          <Link href="/admin/questions/upload" className="btn-outline px-4 py-2 text-sm">
+            ⬆️ 일괄 업로드
+          </Link>
+        </div>
       </div>
 
       {/* 과정 필터 */}

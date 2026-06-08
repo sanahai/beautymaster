@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProgressBar from "./ProgressBar";
 import TimerGauge from "./TimerGauge";
@@ -22,6 +22,8 @@ type Props = {
 
 export const RESULT_KEY = "bm_result";
 
+type AnswerRecord = { selected: number | null; revealed: boolean; timeSpent: number };
+
 export default function QuizRunner({
   questions,
   sessionType,
@@ -34,87 +36,100 @@ export default function QuizRunner({
   callComplete = true,
 }: Props) {
   const router = useRouter();
-  const [index, setIndex] = useState(0);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [revealed, setRevealed] = useState(revealMode);
-  const [seconds, setSeconds] = useState(timerSeconds ?? 0);
-  const [finishing, setFinishing] = useState(false);
-
-  const startRef = useRef<number>(Date.now());
-  const statsRef = useRef({
-    correct: 0,
-    totalTime: 0,
-    perSubject: {} as Record<string, { correct: number; total: number }>,
-    wrongList: [] as WrongItem[],
-  });
-
-  const q = questions[index];
   const total = questions.length;
 
+  // 이어하기 저장 키 (과정/세션/회차별)
+  const storageKey = useMemo(
+    () => `bm_quiz_${courseSlug}_${sessionType}_${mockNumber ?? 0}`,
+    [courseSlug, sessionType, mockNumber]
+  );
+
+  const [index, setIndex] = useState(0);
+  const [answers, setAnswers] = useState<(AnswerRecord | null)[]>(() =>
+    Array(total).fill(null)
+  );
+  const [seconds, setSeconds] = useState(timerSeconds ?? 0);
+  const [finishing, setFinishing] = useState(false);
+  const [restored, setRestored] = useState(false);
+
+  const startRef = useRef<number>(Date.now());
+  const recordedRef = useRef<Set<number>>(new Set());
+
+  const q = questions[index];
+  const cur = answers[index] ?? null;
+  const revealed = revealMode || (cur?.revealed ?? false);
+  const selected = cur?.selected ?? null;
+
+  // 마운트 시 localStorage 에서 진행 상태 복원 (문제 수가 동일할 때만)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const saved = JSON.parse(raw) as {
+          total: number;
+          index: number;
+          answers: (AnswerRecord | null)[];
+        };
+        if (saved.total === total && Array.isArray(saved.answers)) {
+          setAnswers(saved.answers);
+          setIndex(Math.min(Math.max(0, saved.index), total - 1));
+          saved.answers.forEach((a, i) => {
+            if (a?.revealed) recordedRef.current.add(i);
+          });
+          setRestored(true);
+        }
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const recordAnswer = useCallback(
-    (sel: number | null, isCorrect: boolean, timeSpent: number) => {
+    (idx: number, sel: number | null, isCorrect: boolean, timeSpent: number) => {
       if (revealMode) return; // 1회차는 기록하지 않음
+      if (recordedRef.current.has(idx)) return; // 중복 전송 방지
+      recordedRef.current.add(idx);
+      const target = questions[idx];
       fetch("/api/learn/answer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          questionId: q.id,
+          questionId: target.id,
           sessionType,
           selected: sel,
           isCorrect,
           timeSpent,
-          shuffledOrder: q.shuffledOrder,
+          shuffledOrder: target.shuffledOrder,
           mockNumber,
         }),
       }).catch(() => {});
     },
-    [q, sessionType, mockNumber, revealMode]
+    [questions, sessionType, mockNumber, revealMode]
   );
 
-  const commitStats = useCallback(
-    (sel: number | null, isCorrect: boolean, timeSpent: number) => {
-      const s = statsRef.current;
-      s.totalTime += timeSpent;
-      const subj = q.subject || "기타";
-      if (!s.perSubject[subj]) s.perSubject[subj] = { correct: 0, total: 0 };
-      s.perSubject[subj].total += 1;
-      if (isCorrect) {
-        s.correct += 1;
-        s.perSubject[subj].correct += 1;
-      } else {
-        const correctOpt = q.options.find((o) => o.originalIndex === q.answer);
-        s.wrongList.push({
-          id: q.id,
-          subject: q.subject,
-          content: q.content,
-          correctText: correctOpt?.text || "",
-          explanation: q.explanation,
-        });
-      }
-    },
-    [q]
-  );
+  const setAnswerAt = useCallback((idx: number, rec: AnswerRecord) => {
+    setAnswers((prev) => {
+      const next = [...prev];
+      next[idx] = rec;
+      return next;
+    });
+  }, []);
 
   const handleSelect = (originalIndex: number) => {
-    if (revealed || selected !== null) return;
+    if (revealMode || revealed) return;
     const timeSpent = Math.round((Date.now() - startRef.current) / 1000);
     const isCorrect = originalIndex === q.answer;
-    setSelected(originalIndex);
-    setRevealed(true);
-    commitStats(originalIndex, isCorrect, timeSpent);
-    recordAnswer(originalIndex, isCorrect, timeSpent);
+    setAnswerAt(index, { selected: originalIndex, revealed: true, timeSpent });
+    recordAnswer(index, originalIndex, isCorrect, timeSpent);
   };
 
   const handleTimeout = useCallback(() => {
-    if (revealed) return;
+    if (revealMode || answers[index]?.revealed) return;
     const timeSpent = timerSeconds ?? 0;
-    setSelected(null);
-    setRevealed(true);
-    commitStats(null, false, timeSpent);
-    recordAnswer(null, false, timeSpent);
-  }, [revealed, timerSeconds, commitStats, recordAnswer]);
+    setAnswerAt(index, { selected: null, revealed: true, timeSpent });
+    recordAnswer(index, null, false, timeSpent);
+  }, [revealMode, answers, index, timerSeconds, setAnswerAt, recordAnswer]);
 
-  // 타이머
+  // 타이머 (미응답 문제에서만 동작)
   useEffect(() => {
     if (timerSeconds === null || revealed) return;
     if (seconds <= 0) {
@@ -125,22 +140,108 @@ export default function QuizRunner({
     return () => clearTimeout(t);
   }, [seconds, revealed, timerSeconds, handleTimeout]);
 
+  // 문제 이동 시 타이머/시작시각 초기화
+  useEffect(() => {
+    setSeconds(timerSeconds ?? 0);
+    startRef.current = Date.now();
+  }, [index, timerSeconds]);
+
+  // 자동 저장 (모든 답변/이동마다 localStorage 에 기록)
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({ total, index, answers }));
+    } catch {}
+  }, [storageKey, total, index, answers]);
+
+  // 서버 진행 위치 저장 (이탈 시점)
+  const saveServerProgress = useCallback(() => {
+    const roundNum = sessionType.startsWith("round") ? Number(sessionType.slice(5)) : 0;
+    const payload = JSON.stringify({
+      courseSlug,
+      lastQIndex: index,
+      lastRound: roundNum || undefined,
+      lastMock: sessionType === "mock" ? mockNumber : undefined,
+    });
+    try {
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(
+          "/api/learn/progress",
+          new Blob([payload], { type: "application/json" })
+        );
+      } else {
+        fetch("/api/learn/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+          keepalive: true,
+        }).catch(() => {});
+      }
+    } catch {}
+  }, [courseSlug, index, sessionType, mockNumber]);
+
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === "hidden") saveServerProgress();
+    };
+    window.addEventListener("pagehide", saveServerProgress);
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      window.removeEventListener("pagehide", saveServerProgress);
+      document.removeEventListener("visibilitychange", onHide);
+    };
+  }, [saveServerProgress]);
+
   const finish = async () => {
     setFinishing(true);
-    const s = statsRef.current;
+
+    let correct = 0;
+    let totalTime = 0;
+    const perSubject: Record<string, { correct: number; total: number }> = {};
+    const wrongList: WrongItem[] = [];
+
+    if (!revealMode) {
+      questions.forEach((question, i) => {
+        const a = answers[i];
+        if (!a) return;
+        totalTime += a.timeSpent;
+        const subj = question.subject || "기타";
+        if (!perSubject[subj]) perSubject[subj] = { correct: 0, total: 0 };
+        perSubject[subj].total += 1;
+        const isCorrect = a.selected === question.answer;
+        if (isCorrect) {
+          correct += 1;
+          perSubject[subj].correct += 1;
+        } else {
+          const correctOpt = question.options.find((o) => o.originalIndex === question.answer);
+          wrongList.push({
+            id: question.id,
+            subject: question.subject,
+            content: question.content,
+            correctText: correctOpt?.text || "",
+            explanation: question.explanation,
+          });
+        }
+      });
+    }
+
     const result: QuizResult = {
       sessionType,
       courseSlug,
       mockNumber,
       total,
-      correct: s.correct,
-      totalTime: s.totalTime,
-      perSubject: s.perSubject,
-      wrongList: s.wrongList,
+      correct,
+      totalTime,
+      perSubject,
+      wrongList,
       passScore: sessionType === "mock" ? Math.ceil(total * 0.6) : undefined,
     };
     try {
       sessionStorage.setItem(RESULT_KEY, JSON.stringify(result));
+    } catch {}
+
+    // 완료했으므로 이어하기 저장 삭제
+    try {
+      localStorage.removeItem(storageKey);
     } catch {}
 
     if (callComplete) {
@@ -152,7 +253,7 @@ export default function QuizRunner({
             courseSlug,
             sessionType,
             mockNumber,
-            score: sessionType === "mock" ? s.correct : undefined,
+            score: sessionType === "mock" ? correct : undefined,
           }),
         });
       } catch {}
@@ -161,29 +262,15 @@ export default function QuizRunner({
   };
 
   const next = () => {
-    // 1회차(reveal)는 카운트만, 나머지는 stats 이미 반영됨
-    if (revealMode) {
-      // reveal 모드는 정답 처리 없이 진행률만
-    }
     if (index + 1 >= total) {
       finish();
       return;
     }
-    const nextIdx = index + 1;
-    setIndex(nextIdx);
-    setSelected(null);
-    setRevealed(revealMode);
-    setSeconds(timerSeconds ?? 0);
-    startRef.current = Date.now();
+    setIndex(index + 1);
+  };
 
-    // 진행 저장 (반복학습 한정, 5문제마다)
-    if (sessionType.startsWith("round") && nextIdx % 5 === 0) {
-      fetch("/api/learn/progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courseSlug, lastQIndex: nextIdx }),
-      }).catch(() => {});
-    }
+  const prev = () => {
+    if (index > 0) setIndex(index - 1);
   };
 
   if (!q) {
@@ -210,12 +297,18 @@ export default function QuizRunner({
 
   return (
     <div className="mx-auto max-w-2xl">
+      {restored && (
+        <div className="mb-3 rounded-card bg-primary-pale px-4 py-2 text-center text-sm font-semibold text-primary">
+          💾 이전에 풀던 위치에서 이어서 시작합니다.
+        </div>
+      )}
+
       {/* 상단 바 */}
       <div className="mb-5 flex items-center gap-4">
         <div className="flex-1">
           <ProgressBar current={index + 1} total={total} subject={q.subject} />
         </div>
-        {timerSeconds !== null && !revealMode && (
+        {timerSeconds !== null && !revealMode && !revealed && (
           <TimerGauge seconds={seconds} total={timerSeconds} />
         )}
       </div>
@@ -246,17 +339,27 @@ export default function QuizRunner({
           </div>
         )}
 
-        <button
-          onClick={next}
-          disabled={!revealed || finishing}
-          className="btn-primary mt-6 w-full"
-        >
-          {finishing
-            ? "결과 정리 중..."
-            : index + 1 >= total
-            ? "결과 보기"
-            : "다음 문제"}
-        </button>
+        {/* 이동 버튼 */}
+        <div className="mt-6 flex gap-3">
+          <button
+            onClick={prev}
+            disabled={index === 0 || finishing}
+            className="flex items-center justify-center gap-1 rounded-btn border border-gray-300 px-4 py-3 font-semibold text-beauty-gray transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <span aria-hidden>←</span> 이전 문제
+          </button>
+          <button
+            onClick={next}
+            disabled={!revealed || finishing}
+            className="btn-primary flex-1"
+          >
+            {finishing
+              ? "결과 정리 중..."
+              : index + 1 >= total
+              ? "결과 보기"
+              : "다음 문제"}
+          </button>
+        </div>
       </div>
     </div>
   );

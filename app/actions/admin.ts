@@ -67,6 +67,31 @@ export async function toggleQuestionAction(formData: FormData) {
   revalidatePath("/admin/questions");
 }
 
+// 시드(자동 생성) 샘플 문제 전체 삭제 — 업로드한 문제는 남김.
+// 시드 문제는 지문이 "...가장 관련이 깊은 개념은 무엇인가?" 패턴으로 생성됨.
+export async function deleteSampleQuestionsAction(): Promise<void> {
+  await requireAdmin();
+  const SAMPLE_MARKER = "가장 관련이 깊은 개념은 무엇인가?";
+
+  const samples = await prisma.question.findMany({
+    where: { content: { contains: SAMPLE_MARKER } },
+    select: { id: true },
+  });
+  const ids = samples.map((s) => s.id);
+  if (ids.length === 0) {
+    revalidatePath("/admin/questions");
+    return;
+  }
+
+  // 외래키 제약: 연관된 답안·오답노트를 먼저 삭제
+  await prisma.userAnswer.deleteMany({ where: { questionId: { in: ids } } });
+  await prisma.wrongNote.deleteMany({ where: { questionId: { in: ids } } });
+  await prisma.question.deleteMany({ where: { id: { in: ids } } });
+
+  revalidatePath("/admin/questions");
+  revalidatePath("/admin");
+}
+
 // TSV 일괄 업로드: subject \t content \t opt1 \t opt2 \t opt3 \t opt4 \t answer \t explanation \t difficulty \t isFree
 export async function bulkUploadAction(formData: FormData): Promise<void> {
   await requireAdmin();
