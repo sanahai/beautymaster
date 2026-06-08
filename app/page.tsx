@@ -54,6 +54,23 @@ export default async function LandingPage() {
     <>
       <Header />
       <main>
+        {/* 상단 안내사항 */}
+        <section className="border-b border-primary-pale bg-primary-pale/40">
+          <div className="mx-auto max-w-6xl px-4 py-4">
+            <div className="rounded-card border border-primary/15 bg-white/70 p-4 shadow-card">
+              <p className="mb-2 text-sm font-bold text-primary">안내사항</p>
+              <p className="text-sm leading-relaxed text-beauty-neutral">
+                본 사이트에서 제공하는 문제는 큐넷(Q-Net) 또는 한국산업인력공단의 공식 기출문제가
+                아닙니다.
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-beauty-gray">
+                공개된 자격증 기출 경향과 학습 자료를 바탕으로 AI를 활용하여 재구성한 학습용
+                문제입니다.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Hero */}
         <section className="relative overflow-hidden bg-gradient-to-b from-primary-pale to-beauty-bg">
           {/* 움직이는 배경 장식 */}
@@ -240,10 +257,75 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        <footer className="bg-beauty-neutral py-8 text-center text-sm text-white/70">
-          <p className="mb-1 font-bold text-white">💄 BEAUTYmaster</p>
-          <p>미용사 자격증 필기시험 문제은행 · support@beautymaster.kr</p>
-          <p className="mt-2 text-xs">© 2026 BEAUTYmaster. 개인정보 처리방침 · 이용약관</p>
+        {/* 문제·학습 자료 관련 안내 */}
+        <section className="bg-beauty-bg">
+          <div className="mx-auto max-w-5xl px-4 py-14">
+            <h2 className="mb-6 text-2xl font-bold text-beauty-neutral">
+              문제·학습 자료 관련 안내
+            </h2>
+            <div className="space-y-4 rounded-card border border-primary/15 bg-primary-pale/40 p-6 text-sm leading-relaxed text-beauty-gray">
+              <p>
+                본 사이트는 큐넷(Q-Net), 한국산업인력공단 또는 국가자격시험 시행기관과 제휴·운영
+                관계가 없는 민간 학습 서비스이며, 국가자격증 필기시험 준비를 위한 학습용 문제은행입니다.
+                제공되는 문제는 해당 기관이 공식적으로 배포하는 정식 기출문제 원문이 아닙니다.
+              </p>
+              <p>
+                문제는 공개된 출제 경향·과목 구성·문제 유형과 시험 범위를 참고하여 AI를 활용해
+                재구성한 학습용 예상·복습 문항입니다. 지문·선택지·해설은 학습 편의를 위해 본 사이트
+                형식에 맞게 편집될 수 있으며 실제 시험문과 동일하지 않을 수 있습니다.
+              </p>
+              <p>
+                실제 시험에 동일 문항이 출제된다는 보장은 없으며, 출제 범위·방식·법령·기준 개정
+                등과 차이가 날 수 있습니다. 학습 자료는 보조 목적이며 합격을 보장하지 않습니다.
+              </p>
+              <p>
+                시험 접수, 출제기준, 일정, 합격 기준 등 공식 정보는 반드시 큐넷(Q-Net) 또는 해당
+                자격시험 시행기관의 공지를 확인해 주시기 바랍니다.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* 회사 정보 푸터 */}
+        <footer className="bg-beauty-neutral text-white">
+          <div className="mx-auto max-w-6xl px-4 py-12">
+            <div className="flex flex-col gap-6 border-b border-white/10 pb-6 md:flex-row md:items-start md:justify-between">
+              <div>
+                <p className="text-xl font-bold text-white">BEAUTYmaster</p>
+                <p className="mt-1 text-sm text-white/60">
+                  필기 합격의 가장 빠른 루트, 데이터 기반 학습 플랫폼
+                </p>
+              </div>
+              <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/80">
+                <a href="#" className="hover:text-primary-accent">회사정보</a>
+                <a href="#" className="hover:text-primary-accent">이용약관</a>
+                <a href="#" className="hover:text-primary-accent">개인정보처리방침</a>
+                <a href="#" className="hover:text-primary-accent">환불정책</a>
+                <a href="#" className="hover:text-primary-accent">고객센터</a>
+              </nav>
+            </div>
+
+            <div className="mt-6 space-y-1 text-xs text-white/60">
+              <p>
+                <span className="font-semibold text-white/80">주식회사 모든코퍼레이션</span> · 대표이사
+                이동길 · 사업자등록번호 402-86-15931
+              </p>
+              <p>통신판매업 신고 제2022-인천서구-1321호 · 인천광역시 서구 가재울로 20</p>
+              <p>
+                서비스명 BEAUTYmaster · 개인정보보호책임자 이태나 · 무통장 입금 계좌 등은
+                수강·결제 안내를 따릅니다.
+              </p>
+            </div>
+
+            <div className="mt-6 rounded-card bg-white/5 px-4 py-3 text-xs text-white/70">
+              본 사이트는 큐넷(Q-Net) 및 한국산업인력공단의 공식 사이트가 아니며, 제공되는 문제는
+              AI를 활용해 재구성한 학습용 문제입니다.
+            </div>
+
+            <p className="mt-6 text-xs text-white/40">
+              © 2026 주식회사 모든코퍼레이션. All rights reserved.
+            </p>
+          </div>
         </footer>
       </main>
     </>
