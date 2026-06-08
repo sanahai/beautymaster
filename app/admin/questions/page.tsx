@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createQuestionAction, toggleQuestionAction } from "@/app/actions/admin";
 
@@ -7,13 +8,28 @@ const PAGE_SIZE = 15;
 export default async function AdminQuestionsPage({
   searchParams,
 }: {
-  searchParams: { course?: string; page?: string };
+  searchParams: { course?: string; page?: string; q?: string };
 }) {
   const courses = await prisma.course.findMany({ orderBy: { id: "asc" } });
   const courseId = searchParams.course ? Number(searchParams.course) : courses[0]?.id;
   const page = Math.max(1, Number(searchParams.page) || 1);
+  const query = (searchParams.q || "").trim();
 
-  const where = { courseId };
+  const where: Prisma.QuestionWhereInput = { courseId };
+  if (query) {
+    const or: Prisma.QuestionWhereInput[] = [
+      { content: { contains: query, mode: "insensitive" } },
+      { subject: { contains: query, mode: "insensitive" } },
+      { option1: { contains: query, mode: "insensitive" } },
+      { option2: { contains: query, mode: "insensitive" } },
+      { option3: { contains: query, mode: "insensitive" } },
+      { option4: { contains: query, mode: "insensitive" } },
+    ];
+    const asNum = Number(query);
+    if (Number.isInteger(asNum) && asNum > 0) or.push({ id: asNum });
+    where.OR = or;
+  }
+
   const [total, questions] = await Promise.all([
     prisma.question.count({ where }),
     prisma.question.findMany({
@@ -25,6 +41,14 @@ export default async function AdminQuestionsPage({
   ]);
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
+  const buildHref = (opts: { course?: number; page?: number; q?: string }) => {
+    const params = new URLSearchParams();
+    params.set("course", String(opts.course ?? courseId));
+    if (opts.q ?? query) params.set("q", opts.q ?? query);
+    if (opts.page && opts.page > 1) params.set("page", String(opts.page));
+    return `/admin/questions?${params.toString()}`;
+  };
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
@@ -35,11 +59,11 @@ export default async function AdminQuestionsPage({
       </div>
 
       {/* 과정 필터 */}
-      <div className="mb-6 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         {courses.map((c) => (
           <Link
             key={c.id}
-            href={`/admin/questions?course=${c.id}`}
+            href={buildHref({ course: c.id, page: 1 })}
             className={`rounded-full px-4 py-1.5 text-sm font-semibold ${
               c.id === courseId
                 ? "bg-primary text-white"
@@ -50,6 +74,23 @@ export default async function AdminQuestionsPage({
           </Link>
         ))}
       </div>
+
+      {/* 검색 */}
+      <form method="get" action="/admin/questions" className="mb-6 flex gap-2">
+        <input type="hidden" name="course" value={courseId} />
+        <input
+          name="q"
+          defaultValue={query}
+          className="input flex-1"
+          placeholder="지문·보기·과목(키워드)·문제ID로 검색"
+        />
+        <button type="submit" className="btn-primary px-5">검색</button>
+        {query && (
+          <Link href={buildHref({ q: "", page: 1 })} className="btn-outline px-5">
+            초기화
+          </Link>
+        )}
+      </form>
 
       {/* 신규 문제 등록 */}
       <details className="card mb-6">
@@ -89,7 +130,19 @@ export default async function AdminQuestionsPage({
       </details>
 
       {/* 문제 목록 */}
-      <p className="mb-2 text-sm text-beauty-gray">총 {total.toLocaleString()}문제</p>
+      <p className="mb-2 text-sm text-beauty-gray">
+        {query ? (
+          <>
+            <span className="font-semibold text-primary">&apos;{query}&apos;</span> 검색 결과{" "}
+            {total.toLocaleString()}건
+          </>
+        ) : (
+          <>총 {total.toLocaleString()}문제</>
+        )}
+      </p>
+      {query && total === 0 && (
+        <div className="card text-center text-beauty-gray">검색 결과가 없습니다.</div>
+      )}
       <div className="space-y-2">
         {questions.map((q) => (
           <div key={q.id} className={`card ${!q.isActive ? "opacity-50" : ""}`}>
@@ -104,6 +157,7 @@ export default async function AdminQuestionsPage({
                   </span>
                   {q.isFree && <span className="font-bold text-beauty-success">무료</span>}
                   {!q.isActive && <span className="font-bold text-beauty-danger">비활성</span>}
+                  <span className="ml-auto text-beauty-gray">#{q.id}</span>
                 </div>
                 <p className="text-sm font-semibold text-beauty-neutral">{q.content}</p>
                 <ul className="mt-2 space-y-1">
@@ -149,7 +203,7 @@ export default async function AdminQuestionsPage({
           {Array.from({ length: totalPages }).slice(0, 20).map((_, i) => (
             <Link
               key={i}
-              href={`/admin/questions?course=${courseId}&page=${i + 1}`}
+              href={buildHref({ page: i + 1 })}
               className={`rounded-btn px-3 py-1.5 text-sm font-semibold ${
                 page === i + 1 ? "bg-primary text-white" : "bg-white text-beauty-gray shadow-card"
               }`}
