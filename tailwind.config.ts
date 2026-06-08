@@ -9,8 +9,45 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        primary: {
+          DEFAULT: "#D81B60",
+          light: "#E91E63",
+          pale: "#FCE4EC",
+          accent: "#FF4081",
+        },
+        beauty: {
+          bg: "#FFF5F8",
+          success: "#2E7D32",
+          danger: "#C62828",
+          neutral: "#424242",
+          gray: "#757575",
+        },
+      },
+      fontFamily: {
+        kr: ["Pretendard", "system-ui", "sans-serif"],
+      },
+      borderRadius: {
+        card: "12px",
+        btn: "8px",
+      },
+      boxShadow: {
+        card: "0 4px 20px rgba(216, 27, 96, 0.08)",
+        cardHover: "0 8px 30px rgba(216, 27, 96, 0.15)",
+      },
+      keyframes: {
+        "fade-in": {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "pop": {
+          "0%": { transform: "scale(0.96)" },
+          "60%": { transform: "scale(1.02)" },
+          "100%": { transform: "scale(1)" },
+        },
+      },
+      animation: {
+        "fade-in": "fade-in 0.4s ease-out",
+        "pop": "pop 0.25s ease-out",
       },
     },
   },

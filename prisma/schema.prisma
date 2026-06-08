@@ -1,0 +1,160 @@
+// BEAUTYmaster - 미용사 자격증 필기 문제은행
+// 스펙(Chapter 5)을 기반으로 한 스키마.
+// 배포(Vercel 서버리스)에서는 PostgreSQL(Neon/Vercel Postgres)을 사용합니다.
+// 로컬 개발도 동일한 DATABASE_URL(클라우드 Postgres)을 사용하면 됩니다.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  phone         String?
+  role          String   @default("student") // 'student' | 'admin'
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  enrollments      Enrollment[]
+  answers          UserAnswer[]
+  mockSessions     MockSession[]
+  wrongNotes       WrongNote[]
+  learningProgress LearningProgress[]
+}
+
+model Course {
+  id           Int      @id @default(autoincrement())
+  slug         String   @unique // e.g. 'beauty-general'
+  name         String // e.g. '미용사(일반) 필기'
+  category     String? // e.g. '미용사'
+  description  String?
+  price        Int      @default(39000)
+  durationDays Int      @default(90)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  questions        Question[]
+  enrollments      Enrollment[]
+  mockSessions     MockSession[]
+  learningProgress LearningProgress[]
+}
+
+model Question {
+  id          Int      @id @default(autoincrement())
+  courseId    Int
+  subject     String? // 과목명
+  content     String // 문제 지문
+  option1     String
+  option2     String
+  option3     String
+  option4     String
+  answer      Int // 정답 번호 1~4
+  explanation String?
+  difficulty  Int      @default(2) // 1(쉬움)~3(어려움)
+  isFree      Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  course     Course       @relation(fields: [courseId], references: [id])
+  answers    UserAnswer[]
+  wrongNotes WrongNote[]
+
+  @@index([courseId])
+}
+
+model Enrollment {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  courseId  Int
+  status    String    @default("pending") // pending|paid|active|expired|cancelled
+  paidAt    DateTime?
+  expiresAt DateTime?
+  amount    Int
+  memo      String?
+  createdAt DateTime  @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
+
+  @@unique([userId, courseId])
+}
+
+model UserAnswer {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  questionId    Int
+  sessionType   String // trial|round1|round2|round3|mock|wrong_round|wrong_mock
+  sessionId     Int?
+  selected      Int?
+  isCorrect     Boolean?
+  timeSpent     Int?
+  shuffledOrder String?
+  answeredAt    DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  question Question @relation(fields: [questionId], references: [id])
+
+  @@index([userId, sessionType])
+}
+
+model MockSession {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  courseId     Int
+  mockNumber   Int // 1~6
+  difficulty   String // easy|normal|hard|real
+  totalQ       Int       @default(60)
+  correctCount Int       @default(0)
+  score        Float?
+  passScore    Float     @default(60)
+  questionIds  String? // 생성된 문제 id 목록 (JSON)
+  startedAt    DateTime?
+  completedAt  DateTime?
+
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
+}
+
+model WrongNote {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  questionId  Int
+  source      String // round2|round3|mock1..mock6
+  wrongCount  Int       @default(1)
+  lastWrongAt DateTime  @default(now())
+  isResolved  Boolean   @default(false)
+
+  user     User     @relation(fields: [userId], references: [id])
+  question Question @relation(fields: [questionId], references: [id])
+
+  @@unique([userId, questionId, source])
+}
+
+model LearningProgress {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  courseId        Int
+  round1Done      Boolean  @default(false)
+  round2Done      Boolean  @default(false)
+  round3Done      Boolean  @default(false)
+  wrongRoundDone  Boolean  @default(false)
+  mockDone        Int      @default(0) // 완료한 모의고사 수 0~6
+  wrongMockDone   Boolean  @default(false)
+  lastRound       Int      @default(0)
+  lastMock        Int      @default(0)
+  lastQIndex      Int      @default(0)
+  updatedAt       DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
+
+  @@unique([userId, courseId])
+}
