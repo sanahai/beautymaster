@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Header from "@/components/Header";
 import HeroCarousel from "@/components/HeroCarousel";
+import { AIExplanationSection } from "@/components/HeroAndAIExplanation_1";
 import { COURSES, PACKAGE_PRICE } from "@/lib/courses";
 import { prisma } from "@/lib/prisma";
 
@@ -153,6 +154,9 @@ export default async function LandingPage() {
             ))}
           </div>
         </section>
+
+        {/* AI 해설 차별점 (히어로와 학습 플로우 사이) */}
+        <AIExplanationSection />
 
         {/* 학습 플로우 */}
         <section className="bg-primary-pale/50">
