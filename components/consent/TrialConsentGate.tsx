@@ -7,9 +7,11 @@ import { recordConsentAction } from "@/app/actions/consent";
 
 export default function TrialConsentGate({
   needsConsent,
+  examCategory,
   children,
 }: {
   needsConsent: boolean;
+  examCategory?: string;
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -21,7 +23,7 @@ export default function TrialConsentGate({
   const handleAgree = async () => {
     setSubmitting(true);
     try {
-      await recordConsentAction("trial");
+      await recordConsentAction("trial", examCategory);
     } catch {
       // 기록 실패해도 학습 진행은 막지 않음 (네트워크 오류 등)
     }

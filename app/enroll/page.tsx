@@ -18,6 +18,11 @@ export default async function EnrollListPage() {
   });
   const statusByCourse = new Map(enrollments.map((e) => [e.courseId, e.status]));
 
+  // 패키지(전 과정) 보유 현황: 모든 과정이 active면 보유, 하나라도 pending이면 대기
+  const allActive =
+    courses.length > 0 && courses.every((c) => statusByCourse.get(c.id) === "active");
+  const anyPending = courses.some((c) => statusByCourse.get(c.id) === "pending");
+
   return (
     <>
       <Header />
@@ -26,13 +31,28 @@ export default async function EnrollListPage() {
         <p className="mb-8 text-beauty-gray">학습할 자격증 과정을 선택하세요.</p>
 
         <div className="mb-8 rounded-card border-2 border-primary bg-primary-pale/40 p-6">
-          <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
               <h2 className="text-lg font-bold text-primary">미용사 패키지 (4종 전체)</h2>
               <p className="text-sm text-beauty-gray">일반·피부·네일·메이크업 모두 · 약 50% 할인</p>
+              <p className="mt-1 text-2xl font-extrabold text-primary">
+                {PACKAGE_PRICE.toLocaleString()}원
+              </p>
             </div>
-            <div className="text-2xl font-extrabold text-primary">
-              {PACKAGE_PRICE.toLocaleString()}원
+            <div className="w-full sm:w-auto">
+              {allActive ? (
+                <span className="inline-block rounded-btn bg-beauty-success/10 px-5 py-2.5 text-sm font-bold text-beauty-success">
+                  전 과정 수강중
+                </span>
+              ) : anyPending ? (
+                <Link href="/enroll/package/payment" className="btn-outline w-full sm:w-auto">
+                  입금 대기 중 · 결제 안내
+                </Link>
+              ) : (
+                <Link href="/enroll/package" className="btn-primary w-full sm:w-auto">
+                  패키지 신청하기
+                </Link>
+              )}
             </div>
           </div>
         </div>

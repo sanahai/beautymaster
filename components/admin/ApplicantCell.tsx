@@ -21,25 +21,37 @@ const STATUS_LABEL: Record<string, string> = {
 export default function ApplicantCell({
   email,
   info,
+  variant = "name",
 }: {
   email: string;
   info: ApplicantInfo;
+  variant?: "name" | "button";
 }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="text-left"
-        title="신청자 정보 보기"
-      >
-        <div className="font-semibold text-primary underline-offset-2 hover:underline">
-          {info.name}
-        </div>
-        <div className="text-xs text-beauty-gray">{email}</div>
-      </button>
+      {variant === "button" ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="rounded-btn border border-primary px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary-pale"
+        >
+          정보보기
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="text-left"
+          title="신청자 정보 보기"
+        >
+          <div className="font-semibold text-primary underline-offset-2 hover:underline">
+            {info.name}
+          </div>
+          <div className="text-xs text-beauty-gray">{email}</div>
+        </button>
+      )}
 
       {open && (
         <div

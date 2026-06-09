@@ -1,40 +1,74 @@
+import Link from "next/link";
+import Header from "@/components/Header";
 import { requireSession } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
-import { buildQuizQuestions } from "@/lib/quiz";
-import QuizShell from "@/components/QuizShell";
-import QuizRunner from "@/components/quiz/QuizRunner";
-import TrialConsentGate from "@/components/consent/TrialConsentGate";
+import { getCourseConfig } from "@/lib/courses";
 
-export default async function TrialPage() {
-  const session = await requireSession("/trial");
+export default async function TrialSelectPage() {
+  await requireSession("/trial");
 
-  // 이 유저가 무료체험 동의 기록이 있는지 서버에서 조회
-  const consent = await prisma.userConsent.findFirst({
-    where: { userId: session.userId, consentMode: "trial" },
-  });
-
-  const questions = await prisma.question.findMany({
-    where: { isFree: true, isActive: true },
-    take: 100,
+  const courses = await prisma.course.findMany({
+    where: { isActive: true },
     orderBy: { id: "asc" },
   });
 
-  const quiz = buildQuizQuestions(questions, 0);
+  const freeCounts = await prisma.question.groupBy({
+    by: ["courseId"],
+    where: { isFree: true, isActive: true },
+    _count: { _all: true },
+  });
+  const countByCourse = new Map(freeCounts.map((f) => [f.courseId, f._count._all]));
 
   return (
-    <QuizShell exitHref="/dashboard">
-      <TrialConsentGate needsConsent={!consent}>
-        <QuizRunner
-          questions={quiz}
-          sessionType="trial"
-          courseSlug=""
-          timerSeconds={null}
-          revealMode={false}
-          resultPath="/trial/result"
-          title="🎁 무료체험"
-          callComplete={false}
-        />
-      </TrialConsentGate>
-    </QuizShell>
+    <>
+      <Header />
+      <main className="mx-auto max-w-5xl px-4 py-10">
+        <h1 className="mb-2 text-3xl font-bold text-beauty-neutral">🎁 무료체험</h1>
+        <p className="mb-8 text-beauty-gray">
+          체험할 자격증을 선택하세요. 선택한 과정의 무료 문제로 실력을 미리 확인할 수 있습니다.
+        </p>
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {courses.map((c) => {
+            const cfg = getCourseConfig(c.slug);
+            const count = countByCourse.get(c.id) ?? 0;
+            const disabled = count === 0;
+            return (
+              <div key={c.id} className="card flex flex-col">
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="text-3xl">{cfg?.icon ?? "📘"}</span>
+                  <h3 className="text-lg font-bold text-beauty-neutral">{c.name}</h3>
+                </div>
+                <p className="mb-4 text-sm text-beauty-gray">{c.description}</p>
+                <ul className="mb-5 space-y-1 text-sm text-beauty-gray">
+                  <li>🎁 무료 체험 문제: {count.toLocaleString()}문제</li>
+                  <li>⏱️ 타이머 없이 편하게 풀이</li>
+                </ul>
+                <div className="mt-auto">
+                  {disabled ? (
+                    <button
+                      type="button"
+                      disabled
+                      className="w-full cursor-not-allowed rounded-btn bg-gray-300 px-4 py-2.5 text-sm font-bold text-white"
+                    >
+                      준비 중
+                    </button>
+                  ) : (
+                    <Link href={`/trial/${c.slug}`} className="btn-primary w-full">
+                      이 과정 무료체험 시작
+                    </Link>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-8 rounded-card bg-primary-pale/40 p-5 text-sm text-beauty-gray">
+          체험 후 마음에 들면 <Link href="/enroll" className="font-semibold text-primary hover:underline">수강신청</Link>에서
+          정식 과정을 등록할 수 있습니다.
+        </div>
+      </main>
+    </>
   );
 }

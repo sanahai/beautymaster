@@ -12,9 +12,9 @@ export default async function AdminDashboard() {
       prisma.enrollment.count({ where: { status: "pending" } }),
       prisma.enrollment.count({ where: { status: "active" } }),
       prisma.question.count(),
-      // 누적 매출: 관리자가 승인(입금확인)한 수강만 — paidAt 이 기록되고 취소되지 않은 건
+      // 누적 매출: 수강·결제 관리의 '결제완료(active)' 건과 동일 기준으로 연동
       prisma.enrollment.findMany({
-        where: { paidAt: { not: null }, status: { not: "cancelled" } },
+        where: { status: "active" },
         select: { amount: true },
       }),
       prisma.questionReport.count({ where: { status: "open" } }),
@@ -74,9 +74,23 @@ export default async function AdminDashboard() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="card">
-          <h2 className="mb-3 text-lg font-bold text-beauty-neutral">누적 매출</h2>
-          <p className="text-3xl font-extrabold text-primary">{revenue.toLocaleString()}원</p>
-          <p className="mt-1 text-sm text-beauty-gray">관리자가 승인(입금확인)한 수강 기준</p>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-beauty-neutral">누적 매출</h2>
+            <Link
+              href="/admin/enrollments?status=active"
+              className="text-xs font-semibold text-primary hover:underline"
+            >
+              결제완료 내역 →
+            </Link>
+          </div>
+          <Link href="/admin/enrollments?status=active" className="block">
+            <p className="text-3xl font-extrabold text-primary hover:underline">
+              {revenue.toLocaleString()}원
+            </p>
+          </Link>
+          <p className="mt-1 text-sm text-beauty-gray">
+            수강·결제 관리의 결제완료({activeStudents}건)와 연동
+          </p>
           <div className="mt-4 grid grid-cols-2 gap-2">
             <div className="rounded-btn bg-primary-pale/50 p-3 text-sm text-beauty-gray">
               등록 문제 수<br />
