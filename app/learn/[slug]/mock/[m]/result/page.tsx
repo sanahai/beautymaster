@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import QuizShell from "@/components/QuizShell";
 import ResultView from "@/components/quiz/ResultView";
 import { requireEnrollment } from "@/lib/access";
+import { recordStepComplete } from "@/lib/learn-complete";
+import { prisma } from "@/lib/prisma";
 
 export default async function MockResultPage({
   params,
@@ -10,7 +12,14 @@ export default async function MockResultPage({
 }) {
   const m = Number(params.m);
   if (m < 1 || m > 6) notFound();
-  await requireEnrollment(params.slug);
+  const { session, course } = await requireEnrollment(params.slug);
+  // 결과 페이지 도달 = 해당 모의고사 완료 → 서버에서 확실히 진행률 반영
+  await recordStepComplete(session.userId, course.id, "mock", m);
+  // 진행 중이던 모의고사 세션 마감 (점수는 클라이언트가 별도 기록)
+  await prisma.mockSession.updateMany({
+    where: { userId: session.userId, courseId: course.id, mockNumber: m, completedAt: null },
+    data: { completedAt: new Date() },
+  });
 
   const base = `/learn/${params.slug}`;
   const next =

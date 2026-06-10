@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import QuizShell from "@/components/QuizShell";
 import ResultView from "@/components/quiz/ResultView";
 import { requireEnrollment } from "@/lib/access";
+import { recordStepComplete } from "@/lib/learn-complete";
 
 export default async function RoundResultPage({
   params,
@@ -10,7 +11,9 @@ export default async function RoundResultPage({
 }) {
   const n = Number(params.n);
   if (![1, 2, 3].includes(n)) notFound();
-  await requireEnrollment(params.slug);
+  const { session, course } = await requireEnrollment(params.slug);
+  // 결과 페이지 도달 = 해당 회차 완료 → 서버에서 확실히 진행률 반영
+  await recordStepComplete(session.userId, course.id, `round${n}`);
 
   const base = `/learn/${params.slug}`;
   const next =

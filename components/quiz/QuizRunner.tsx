@@ -55,6 +55,7 @@ export default function QuizRunner({
 
   const startRef = useRef<number>(Date.now());
   const recordedRef = useRef<Set<number>>(new Set());
+  const finishingRef = useRef(false);
 
   const q = questions[index];
   const cur = answers[index] ?? null;
@@ -154,56 +155,80 @@ export default function QuizRunner({
     } catch {}
   }, [storageKey, total, index, answers]);
 
-  // 서버 진행 위치 저장 (이탈 시점)
-  const saveServerProgress = useCallback(() => {
-    // 무료체험은 과정 학습 진행률에 반영하지 않음
-    if (sessionType === "trial" || !courseSlug) return;
+  // 서버 진행 위치 저장 (회차/모의고사 진행률 연동)
+  const saveServerProgress = useCallback(
+    (useBeacon = false) => {
+      // 무료체험은 과정 학습 진행률에 반영하지 않음
+      if (sessionType === "trial" || !courseSlug) return;
 
-    const roundNum = sessionType.startsWith("round") ? Number(sessionType.slice(5)) : 0;
-    // 현재 진행 중인 단계 키 (학습 홈의 단계 키와 동일)
-    const curStepKey =
-      sessionType === "mock" ? `mock${mockNumber}` : sessionType;
+      const roundNum = sessionType.startsWith("round") ? Number(sessionType.slice(5)) : 0;
+      // 현재 진행 중인 단계 키 (학습 홈의 단계 키와 동일)
+      const curStepKey = sessionType === "mock" ? `mock${mockNumber}` : sessionType;
+      const answered = answers.filter((a) => a?.revealed).length;
+      const curStepPct = total > 0 ? Math.round((answered / total) * 100) : 0;
+
+      const payload = JSON.stringify({
+        courseSlug,
+        lastQIndex: index,
+        lastRound: roundNum || undefined,
+        lastMock: sessionType === "mock" ? mockNumber : undefined,
+        curStepKey,
+        curStepPct,
+      });
+      try {
+        if (useBeacon && navigator.sendBeacon) {
+          navigator.sendBeacon(
+            "/api/learn/progress",
+            new Blob([payload], { type: "application/json" })
+          );
+        } else {
+          fetch("/api/learn/progress", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: payload,
+            keepalive: true,
+          }).catch(() => {});
+        }
+      } catch {}
+    },
+    [courseSlug, index, sessionType, mockNumber, answers, total]
+  );
+
+  // 진행 중 지속 저장: 문제 이동/답변 시마다 서버에 반영 (디바운스)
+  useEffect(() => {
     const answered = answers.filter((a) => a?.revealed).length;
-    const curStepPct = total > 0 ? Math.round((answered / total) * 100) : 0;
+    if (answered === 0 && index === 0) return; // 시작 직후 빈 상태는 스킵
+    const t = setTimeout(() => saveServerProgress(false), 800);
+    return () => clearTimeout(t);
+  }, [index, answers, saveServerProgress]);
 
-    const payload = JSON.stringify({
-      courseSlug,
-      lastQIndex: index,
-      lastRound: roundNum || undefined,
-      lastMock: sessionType === "mock" ? mockNumber : undefined,
-      curStepKey,
-      curStepPct,
-    });
-    try {
-      if (navigator.sendBeacon) {
-        navigator.sendBeacon(
-          "/api/learn/progress",
-          new Blob([payload], { type: "application/json" })
-        );
-      } else {
-        fetch("/api/learn/progress", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: payload,
-          keepalive: true,
-        }).catch(() => {});
-      }
-    } catch {}
-  }, [courseSlug, index, sessionType, mockNumber, answers, total]);
-
+  // 탭 닫기/새로고침 대비 (beacon)
   useEffect(() => {
     const onHide = () => {
-      if (document.visibilityState === "hidden") saveServerProgress();
+      if (document.visibilityState === "hidden") saveServerProgress(true);
     };
-    window.addEventListener("pagehide", saveServerProgress);
+    const onPageHide = () => saveServerProgress(true);
+    window.addEventListener("pagehide", onPageHide);
     document.addEventListener("visibilitychange", onHide);
     return () => {
-      window.removeEventListener("pagehide", saveServerProgress);
+      window.removeEventListener("pagehide", onPageHide);
       document.removeEventListener("visibilitychange", onHide);
     };
   }, [saveServerProgress]);
 
+  // SPA 네비게이션(나가기 Link 등)으로 언마운트될 때 마지막 상태 flush.
+  // pagehide 는 SPA 이동에서 발생하지 않으므로 언마운트 시점에 저장한다.
+  const saveRef = useRef(saveServerProgress);
+  saveRef.current = saveServerProgress;
+  useEffect(() => {
+    return () => {
+      // 완료(finish) 시에는 결과 페이지에서 서버가 처리하므로 중복 저장 생략
+      if (!finishingRef.current) saveRef.current(false);
+    };
+  }, []);
+
   const finish = async () => {
+    finishingRef.current = true;
     setFinishing(true);
 
     let correct = 0;

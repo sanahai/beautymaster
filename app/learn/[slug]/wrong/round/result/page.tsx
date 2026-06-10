@@ -1,13 +1,15 @@
 import QuizShell from "@/components/QuizShell";
 import ResultView from "@/components/quiz/ResultView";
 import { requireEnrollment } from "@/lib/access";
+import { recordStepComplete } from "@/lib/learn-complete";
 
 export default async function WrongRoundResultPage({
   params,
 }: {
   params: { slug: string };
 }) {
-  await requireEnrollment(params.slug);
+  const { session, course } = await requireEnrollment(params.slug);
+  await recordStepComplete(session.userId, course.id, "wrong_round");
   const base = `/learn/${params.slug}`;
   return (
     <QuizShell exitHref={base}>
