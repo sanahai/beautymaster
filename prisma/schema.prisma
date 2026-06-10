@@ -94,12 +94,13 @@ model Enrollment {
   id        Int       @id @default(autoincrement())
   userId    Int
   courseId  Int
-  status    String    @default("pending") // pending|paid|active|expired|cancelled
-  paidAt    DateTime?
-  expiresAt DateTime?
-  amount    Int
-  memo      String?
-  createdAt DateTime  @default(now())
+  status      String    @default("pending") // pending|paid|active|expired|cancelled
+  paidAt      DateTime?
+  expiresAt   DateTime?
+  amount      Int
+  memo        String?
+  userDeleted Boolean   @default(false) // 회원이 삭제(숨김) 처리 — 기록은 보존
+  createdAt   DateTime  @default(now())
 
   user   User   @relation(fields: [userId], references: [id])
   course Course @relation(fields: [courseId], references: [id])

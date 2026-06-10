@@ -18,7 +18,7 @@ export default async function DashboardPage() {
   });
   const progByCourse = new Map(progresses.map((p) => [p.courseId, p]));
 
-  const visible = enrollments.filter((e) => e.status !== "cancelled");
+  const visible = enrollments.filter((e) => e.status !== "cancelled" && !e.userDeleted);
 
   const STATUS_LABEL: Record<string, string> = {
     pending: "입금/승인 대기 중",

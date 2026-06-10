@@ -32,7 +32,7 @@ export async function requireEnrollment(courseSlug: string) {
   const session = await requireSession(`/learn/${courseSlug}`);
   const data = await getActiveEnrollment(session.userId, courseSlug);
   if (!data?.course) redirect("/dashboard");
-  if (!data.enrollment || data.enrollment.status !== "active") {
+  if (!data.enrollment || data.enrollment.status !== "active" || data.enrollment.userDeleted) {
     redirect(`/enroll/${courseSlug}`);
   }
   return { session, course: data.course, enrollment: data.enrollment };
