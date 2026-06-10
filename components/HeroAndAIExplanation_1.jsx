@@ -197,7 +197,7 @@ export function AIExplanationSection() {
   const ex = examples[active];
 
   return (
-    <section className="bg-gradient-to-b from-white to-rose-50/40 py-20">
+    <section id="ai-explanation" className="scroll-mt-24 bg-gradient-to-b from-white to-rose-50/40 py-20">
       <div className="mx-auto max-w-6xl px-6">
         {/* 헤더 */}
         <div className="mx-auto max-w-2xl text-center">

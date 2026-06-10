@@ -8,6 +8,8 @@ import { prisma } from "@/lib/prisma";
 
 export default async function LandingPage() {
   const totalQuestions = await prisma.question.count({ where: { isActive: true } });
+  // 누적 합격생(전 과정 완주) 수
+  const graduates = await prisma.learningProgress.count({ where: { wrongMockDone: true } });
 
   const flow = [
     { icon: "🎁", title: "무료체험", desc: "100문제 무제한" },
@@ -19,14 +21,14 @@ export default async function LandingPage() {
   ];
 
   const reviews = [
-    { name: "이○○", course: "미용사 일반", text: "선택지가 매번 섞여서 정답 위치를 외우는 습관이 사라졌어요. 3회차 돌고 나니 진짜 외워졌습니다." },
-    { name: "박○○", course: "피부 미용사", text: "오답복습 기능이 최고예요. 틀린 문제만 모아서 다시 푸니 시간이 확 줄었어요. 한 번에 합격!" },
-    { name: "최○○", course: "네일 미용사", text: "모의고사 난이도가 실제 시험이랑 비슷해서 실전 감각 잡는 데 큰 도움이 됐습니다." },
-    { name: "정○○", course: "메이크업 미용사", text: "직장 다니면서 출퇴근 시간에 폰으로 풀었어요. 짧게 자주 푸는 구조라 부담 없이 합격했습니다." },
-    { name: "김○○", course: "미용사 일반", text: "해설이 자세해서 따로 책을 볼 필요가 없었어요. 틀린 이유를 바로 이해하니 같은 실수를 안 하게 됐습니다." },
-    { name: "한○○", course: "피부 미용사", text: "모의고사 6회를 다 풀고 나니 실제 시험이 오히려 쉽게 느껴졌어요. 84점으로 합격했습니다!" },
-    { name: "윤○○", course: "네일 미용사", text: "단계별로 잠금이 풀려서 뭘 해야 할지 헷갈리지 않았어요. 시키는 대로만 했더니 합격이네요." },
-    { name: "장○○", course: "메이크업 미용사", text: "두 번 떨어졌다가 여기서 3주 공부하고 붙었어요. 반복학습 알고리즘이 진짜 효과 있습니다." },
+    { name: "이○○", course: "미용사 일반", tag: "3회차 반복으로 정답 암기 탈출", text: "선택지가 매번 섞여서 정답 위치를 외우는 습관이 사라졌어요. 3회차 돌고 나니 진짜 외워졌습니다." },
+    { name: "박○○", course: "피부 미용사", tag: "오답복습으로 시간 단축", text: "오답복습 기능이 최고예요. 틀린 문제만 모아서 다시 푸니 시간이 확 줄었어요. 한 번에 합격!" },
+    { name: "최○○", course: "네일 미용사", tag: "실전 같은 모의고사", text: "모의고사 난이도가 실제 시험이랑 비슷해서 실전 감각 잡는 데 큰 도움이 됐습니다." },
+    { name: "정○○", course: "메이크업 미용사", tag: "출퇴근 자투리 시간 합격", text: "직장 다니면서 출퇴근 시간에 폰으로 풀었어요. 짧게 자주 푸는 구조라 부담 없이 합격했습니다." },
+    { name: "김○○", course: "미용사 일반", tag: "AI 해설로 책 없이 끝", text: "해설이 자세해서 따로 책을 볼 필요가 없었어요. 틀린 이유를 바로 이해하니 같은 실수를 안 하게 됐습니다." },
+    { name: "한○○", course: "피부 미용사", tag: "모의고사 6회로 84점 합격", text: "모의고사 6회를 다 풀고 나니 실제 시험이 오히려 쉽게 느껴졌어요. 84점으로 합격했습니다!" },
+    { name: "윤○○", course: "네일 미용사", tag: "단계별 잠금으로 길 안 잃음", text: "단계별로 잠금이 풀려서 뭘 해야 할지 헷갈리지 않았어요. 시키는 대로만 했더니 합격이네요." },
+    { name: "장○○", course: "메이크업 미용사", tag: "2회 탈락 후 3주 만에 합격", text: "두 번 떨어졌다가 여기서 3주 공부하고 붙었어요. 반복학습 알고리즘이 진짜 효과 있습니다." },
   ];
 
   const faqs = [
@@ -88,13 +90,13 @@ export default async function LandingPage() {
                 미용사 자격증 필기 합격 플랫폼
               </span>
               <h1 className="mb-5 text-4xl font-extrabold leading-tight text-beauty-neutral sm:text-5xl">
-                선택지가 매번 섞이는
+                &quot;또 떨어지면 어떡하지?&quot;
                 <br />
-                <span className="text-primary">3배수 반복학습</span>으로 합격까지
+                그 불안, <span className="text-primary">AI가 이유부터</span> 알려드립니다
               </h1>
               <p className="mb-9 max-w-2xl text-lg text-beauty-gray lg:mx-0">
-                미용사 일반·피부·네일·메이크업 4종. {totalQuestions.toLocaleString()}개 이상의
-                기출·예상 문제를 반복학습 알고리즘과 6회 모의고사로 완벽 대비하세요.
+                문제집은 답만 알려주지만, 뷰티마스터는 &quot;왜 틀렸는지&quot;까지 분석합니다.
+                미용사 일반·피부·네일·메이크업 4종, {totalQuestions.toLocaleString()}개 이상의 문제로 대비하세요.
               </p>
               <div className="flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
                 <Link href="/signup" className="btn-accent w-full px-8 py-4 text-lg sm:w-auto">
@@ -127,6 +129,28 @@ export default async function LandingPage() {
               </div>
             ))}
           </div>
+        </section>
+
+        {/* 공감 트리거 */}
+        <section className="mx-auto max-w-4xl px-4 py-14 text-center">
+          <h2 className="mb-8 text-2xl font-bold text-beauty-neutral sm:text-3xl">
+            이런 적 있으신가요?
+          </h2>
+          <div className="mx-auto mb-8 max-w-xl space-y-4 text-left">
+            {[
+              "문제집 3바퀴 돌렸는데 시험만 보면 새 유형이 나온다",
+              "비슷한 보기 두 개 사이에서 헷갈려서 틀린다",
+              "틀린 문제 다시 봐도 또 틀린다",
+            ].map((item) => (
+              <div key={item} className="flex items-start gap-3 rounded-card bg-white p-4 shadow-card">
+                <span className="text-xl">😩</span>
+                <p className="text-beauty-neutral">{item}</p>
+              </div>
+            ))}
+          </div>
+          <a href="#ai-explanation" className="btn-accent inline-flex px-8 py-4 text-lg">
+            그 이유, AI가 30초 안에 알려드립니다 →
+          </a>
         </section>
 
         {/* 자격증 목록 */}
@@ -214,14 +238,26 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* 누적 합격생 배너 */}
+        <section className="bg-primary py-10 text-center">
+          <p className="text-2xl font-bold text-white sm:text-3xl">
+            지금까지 <span className="text-primary-accent">{graduates.toLocaleString()}명</span>이 이 방법으로 합격했습니다
+          </p>
+        </section>
+
         {/* 후기 */}
         <section className="bg-primary-pale/50">
           <div className="mx-auto max-w-6xl px-4 py-16">
-            <h2 className="mb-2 text-center text-3xl font-bold text-beauty-neutral">합격 후기</h2>
+            <h2 className="mb-2 text-center text-3xl font-bold text-beauty-neutral">
+              3주 만에 합격한 사람들의 공통점
+            </h2>
             <p className="mb-10 text-center text-beauty-gray">먼저 합격한 수강생들의 생생한 후기입니다.</p>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {reviews.map((r) => (
                 <div key={r.name} className="card">
+                  <span className="mb-2 inline-block rounded-full bg-primary-pale px-3 py-1 text-xs font-bold text-primary">
+                    {r.tag}
+                  </span>
                   <div className="mb-3 text-primary-accent">★★★★★</div>
                   <p className="mb-4 text-sm leading-relaxed text-beauty-neutral">“{r.text}”</p>
                   <div className="text-sm font-semibold text-beauty-gray">
