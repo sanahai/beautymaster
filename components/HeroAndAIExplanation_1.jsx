@@ -191,6 +191,14 @@ export function AIExplanationSection() {
       diagnosis:
         "숫자 기준을 헷갈리는 단순 암기 오류입니다. ‘작업면 75럭스’를 시각 작업 기준으로 함께 외우세요.",
     },
+    {
+      subject: "미용사(메이크업) · 색채학",
+      question: "보색 대비에 대한 설명으로 옳은 것은?",
+      picked: "② 비슷한 색을 나란히 두면 더 선명해진다",
+      answer: "① 색상환에서 마주보는 색을 배치하면 서로 돋보인다",
+      diagnosis:
+        "‘대비 = 비슷한 색’으로 혼동하는 오개념입니다. 보색은 색상환에서 정반대(마주보는) 색으로, 함께 배치하면 서로를 더 선명하게 만듭니다.",
+    },
   ];
 
   const [active, setActive] = useState(0);

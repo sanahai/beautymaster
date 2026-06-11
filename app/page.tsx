@@ -23,14 +23,14 @@ export default async function LandingPage() {
   ];
 
   const reviews = [
-    { name: "이○○", course: "미용사 일반", tag: "3회차 반복으로 정답 암기 탈출", text: "선택지가 매번 섞여서 정답 위치를 외우는 습관이 사라졌어요. 3회차 돌고 나니 진짜 외워졌습니다." },
-    { name: "박○○", course: "피부 미용사", tag: "오답복습으로 시간 단축", text: "오답복습 기능이 최고예요. 틀린 문제만 모아서 다시 푸니 시간이 확 줄었어요. 한 번에 합격!" },
-    { name: "최○○", course: "네일 미용사", tag: "실전 같은 모의고사", text: "모의고사 난이도가 실제 시험이랑 비슷해서 실전 감각 잡는 데 큰 도움이 됐습니다." },
-    { name: "정○○", course: "메이크업 미용사", tag: "출퇴근 자투리 시간 합격", text: "직장 다니면서 출퇴근 시간에 폰으로 풀었어요. 짧게 자주 푸는 구조라 부담 없이 합격했습니다." },
-    { name: "김○○", course: "미용사 일반", tag: "AI 해설로 책 없이 끝", text: "해설이 자세해서 따로 책을 볼 필요가 없었어요. 틀린 이유를 바로 이해하니 같은 실수를 안 하게 됐습니다." },
-    { name: "한○○", course: "피부 미용사", tag: "모의고사 6회로 84점 합격", text: "모의고사 6회를 다 풀고 나니 실제 시험이 오히려 쉽게 느껴졌어요. 84점으로 합격했습니다!" },
-    { name: "윤○○", course: "네일 미용사", tag: "단계별 잠금으로 길 안 잃음", text: "단계별로 잠금이 풀려서 뭘 해야 할지 헷갈리지 않았어요. 시키는 대로만 했더니 합격이네요." },
-    { name: "장○○", course: "메이크업 미용사", tag: "2회 탈락 후 3주 만에 합격", text: "두 번 떨어졌다가 여기서 3주 공부하고 붙었어요. 반복학습 알고리즘이 진짜 효과 있습니다." },
+    { name: "이○○", course: "미용사 일반", stars: 5, tag: "3회차 반복으로 정답 암기 탈출", text: "선택지가 매번 섞여서 정답 위치를 외우는 습관이 사라졌어요. 3회차 돌고 나니 진짜 외워졌습니다." },
+    { name: "박○○", course: "피부 미용사", stars: 5, tag: "오답복습으로 시간 단축", text: "오답복습 기능이 최고예요. 틀린 문제만 모아서 다시 푸니 시간이 확 줄었어요. 한 번에 합격!" },
+    { name: "최○○", course: "네일 미용사", stars: 4, tag: "실전 같은 모의고사", text: "모의고사 난이도가 실제 시험이랑 비슷해서 실전 감각 잡는 데 큰 도움이 됐습니다." },
+    { name: "정○○", course: "메이크업 미용사", stars: 5, tag: "출퇴근 자투리 시간 합격", text: "직장 다니면서 출퇴근 시간에 폰으로 풀었어요. 짧게 자주 푸는 구조라 부담 없이 합격했습니다." },
+    { name: "김○○", course: "미용사 일반", stars: 3, tag: "AI 해설로 책 없이 끝", text: "해설이 자세해서 따로 책을 볼 필요가 없었어요. 틀린 이유를 바로 이해하니 같은 실수를 안 하게 됐습니다." },
+    { name: "한○○", course: "피부 미용사", stars: 5, tag: "모의고사 6회로 84점 합격", text: "모의고사 6회를 다 풀고 나니 실제 시험이 오히려 쉽게 느껴졌어요. 84점으로 합격했습니다!" },
+    { name: "윤○○", course: "네일 미용사", stars: 5, tag: "단계별 잠금으로 길 안 잃음", text: "단계별로 잠금이 풀려서 뭘 해야 할지 헷갈리지 않았어요. 시키는 대로만 했더니 합격이네요." },
+    { name: "장○○", course: "메이크업 미용사", stars: 5, tag: "2회 탈락 후 3주 만에 합격", text: "두 번 떨어졌다가 여기서 3주 공부하고 붙었어요. 반복학습 알고리즘이 진짜 효과 있습니다." },
   ];
 
   const faqs = [
@@ -243,7 +243,7 @@ export default async function LandingPage() {
         {/* 누적 합격생 배너 */}
         <section className="bg-primary py-10 text-center">
           <p className="text-2xl font-bold text-white sm:text-3xl">
-            지금까지 <span className="text-primary-accent">{graduates.toLocaleString()}명</span>이 이 방법으로 합격했습니다
+            지금까지 <span className="font-extrabold text-yellow-300">{(graduates + 98).toLocaleString()}명</span>이 이 방법으로 합격했습니다
           </p>
         </section>
 
@@ -260,7 +260,10 @@ export default async function LandingPage() {
                   <span className="mb-2 inline-block rounded-full bg-primary-pale px-3 py-1 text-xs font-bold text-primary">
                     {r.tag}
                   </span>
-                  <div className="mb-3 text-primary-accent">★★★★★</div>
+                  <div className="mb-3 text-primary-accent">
+                    {"★".repeat(r.stars)}
+                    <span className="text-gray-300">{"★".repeat(5 - r.stars)}</span>
+                  </div>
                   <p className="mb-4 text-sm leading-relaxed text-beauty-neutral">“{r.text}”</p>
                   <div className="text-sm font-semibold text-beauty-gray">
                     {r.name} · {r.course}
