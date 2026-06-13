@@ -10,7 +10,11 @@ export type CourseConfig = {
   description: string;
   price: number;
   subjects: SubjectRatio[];
+  comingSoon?: boolean; // true면 메뉴/아이콘만 노출, 수강·학습은 차후 오픈
 };
+
+// 미용사 패키지(4종 전체)에 포함되는 카테고리
+export const PACKAGE_CATEGORY = "미용사";
 
 export const COURSES: CourseConfig[] = [
   {
@@ -74,6 +78,32 @@ export const COURSES: CourseConfig[] = [
       { subject: "화장품학", ratio: 0.1 },
       { subject: "메이크업관계법규", ratio: 0.2 },
     ],
+  },
+  {
+    slug: "barber",
+    name: "이용사 필기",
+    category: "이용사",
+    icon: "💈",
+    description: "이용이론·피부학·공중보건학·소독학·법규·화장품학",
+    price: 39000,
+    subjects: [
+      { subject: "이용이론", ratio: 0.25 },
+      { subject: "피부학", ratio: 0.15 },
+      { subject: "공중보건학", ratio: 0.2 },
+      { subject: "소독학", ratio: 0.15 },
+      { subject: "이용관계법규", ratio: 0.15 },
+      { subject: "화장품학", ratio: 0.1 },
+    ],
+  },
+  {
+    slug: "tattoo",
+    name: "문신사 필기",
+    category: "문신사",
+    icon: "🪡",
+    description: "문신 시술 이론·위생·감염관리·관계법규 (준비 중)",
+    price: 39000,
+    comingSoon: true,
+    subjects: [],
   },
 ];
 

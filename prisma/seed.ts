@@ -19,6 +19,8 @@ const TOPIC_BANK: Record<string, string[]> = {
   네일미용관계법규: ["공중위생관리법", "네일미용업 정의", "영업신고", "위생관리", "면허 규정", "행정처분", "과태료", "위생교육", "준수사항", "청문 절차"],
   메이크업개론: ["색채의 이해", "베이스 메이크업", "아이 메이크업", "립 메이크업", "컨투어링", "메이크업 도구", "TPO 메이크업", "웨딩 메이크업", "미디어 메이크업", "수정 메이크업"],
   메이크업관계법규: ["공중위생관리법", "메이크업미용업 정의", "영업신고", "위생관리", "면허 규정", "행정처분", "과태료", "위생교육", "준수사항", "청문 절차"],
+  이용이론: ["이용의 역사", "헤어커트", "면도", "정발", "두피·모발관리", "아이론", "이용기구", "조발술", "샴푸", "염모와 탈색"],
+  이용관계법규: ["공중위생관리법", "이용업 정의", "면허 발급", "영업신고", "위생교육", "행정처분", "과태료", "면허 취소", "영업소 폐쇄", "청문 절차"],
 };
 
 function buildQuestions(courseId: number, subjects: { subject: string }[]) {
@@ -119,13 +121,16 @@ async function main() {
         description: c.description,
         price: c.price,
         durationDays: 90,
+        isActive: !c.comingSoon,
       },
     });
     if (!firstCourseId) firstCourseId = course.id;
 
     const questions = buildQuestions(course.id, c.subjects);
-    await prisma.question.createMany({ data: questions });
-    console.log(`✔ 과정 [${c.name}] 문제 ${questions.length}개 생성`);
+    if (questions.length > 0) await prisma.question.createMany({ data: questions });
+    console.log(
+      `✔ 과정 [${c.name}] 문제 ${questions.length}개 생성${c.comingSoon ? " (준비 중)" : ""}`,
+    );
   }
 
   // 데모 학생을 첫 과정(미용사 일반)에 활성 수강 등록

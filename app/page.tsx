@@ -175,28 +175,47 @@ export default async function LandingPage() {
 
         {/* 자격증 목록 */}
         <section className="mx-auto max-w-6xl px-4 py-16">
-          <h2 className="mb-2 text-center text-3xl font-bold text-beauty-neutral">미용기능사 자격증</h2>
-          <p className="mb-10 text-center text-beauty-gray">준비 중인 자격증을 선택하세요.</p>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <h2 className="mb-2 text-center text-3xl font-bold text-beauty-neutral">국가 자격증 과정</h2>
+          <p className="mb-10 text-center text-beauty-gray">원하는 자격증을 선택해 시작하세요.</p>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {COURSES.map((c) => (
               <div
                 key={c.slug}
-                className="card group flex flex-col transition-shadow hover:shadow-cardHover"
+                className={`card group flex flex-col transition-shadow hover:shadow-cardHover ${
+                  c.comingSoon ? "opacity-80" : ""
+                }`}
               >
-                <div className="mb-3 text-5xl">{c.icon}</div>
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-5xl">{c.icon}</span>
+                  {c.comingSoon && (
+                    <span className="rounded-full bg-gray-200 px-3 py-1 text-xs font-bold text-beauty-gray">
+                      준비 중
+                    </span>
+                  )}
+                </div>
                 <h3 className="mb-1 text-lg font-bold text-beauty-neutral">{c.name}</h3>
                 <p className="mb-4 text-sm text-beauty-gray">{c.description}</p>
                 <div className="mb-4 flex items-center justify-between">
                   <span className="text-lg font-bold text-primary">
-                    {c.price.toLocaleString()}원
+                    {c.comingSoon ? "오픈 예정" : `${c.price.toLocaleString()}원`}
                   </span>
-                  <span className="text-xs text-beauty-gray">3개월</span>
+                  {!c.comingSoon && <span className="text-xs text-beauty-gray">3개월</span>}
                 </div>
-                <EnrollCTA
-                  slug={c.slug}
-                  examCategory={c.slug}
-                  className="btn-primary mt-auto w-full"
-                />
+                {c.comingSoon ? (
+                  <button
+                    type="button"
+                    disabled
+                    className="mt-auto w-full cursor-not-allowed rounded-btn bg-gray-200 px-4 py-2.5 text-sm font-bold text-beauty-gray"
+                  >
+                    오픈 준비 중
+                  </button>
+                ) : (
+                  <EnrollCTA
+                    slug={c.slug}
+                    examCategory={c.slug}
+                    className="btn-primary mt-auto w-full"
+                  />
+                )}
               </div>
             ))}
           </div>

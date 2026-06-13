@@ -2,7 +2,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import { requireSession } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
-import { PACKAGE_PRICE } from "@/lib/courses";
+import { PACKAGE_PRICE, PACKAGE_CATEGORY } from "@/lib/courses";
 
 export default async function EnrollListPage() {
   const session = await requireSession("/enroll");
@@ -18,10 +18,12 @@ export default async function EnrollListPage() {
   });
   const statusByCourse = new Map(enrollments.map((e) => [e.courseId, e.status]));
 
-  // 패키지(전 과정) 보유 현황: 모든 과정이 active면 보유, 하나라도 pending이면 대기
+  // 패키지(미용사 4종 전체) 보유 현황: 미용사 과정 모두 active면 보유, 하나라도 pending이면 대기
+  const packageCourses = courses.filter((c) => c.category === PACKAGE_CATEGORY);
   const allActive =
-    courses.length > 0 && courses.every((c) => statusByCourse.get(c.id) === "active");
-  const anyPending = courses.some((c) => statusByCourse.get(c.id) === "pending");
+    packageCourses.length > 0 &&
+    packageCourses.every((c) => statusByCourse.get(c.id) === "active");
+  const anyPending = packageCourses.some((c) => statusByCourse.get(c.id) === "pending");
 
   return (
     <>

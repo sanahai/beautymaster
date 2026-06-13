@@ -2,14 +2,17 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import { requireSession } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
-import { getCourseConfig, PACKAGE_PRICE } from "@/lib/courses";
+import { getCourseConfig, PACKAGE_PRICE, PACKAGE_CATEGORY } from "@/lib/courses";
 import { createPackageEnrollmentAction } from "@/app/actions/enroll";
 
 export default async function PackageEnrollPage() {
   const session = await requireSession("/enroll/package");
 
   const [courses, user] = await Promise.all([
-    prisma.course.findMany({ where: { isActive: true }, orderBy: { id: "asc" } }),
+    prisma.course.findMany({
+      where: { isActive: true, category: PACKAGE_CATEGORY },
+      orderBy: { id: "asc" },
+    }),
     prisma.user.findUnique({ where: { id: session.userId } }),
   ]);
 

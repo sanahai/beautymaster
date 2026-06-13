@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/access";
-import { PACKAGE_PRICE } from "@/lib/courses";
+import { PACKAGE_PRICE, PACKAGE_CATEGORY } from "@/lib/courses";
 
 // 수강신청 생성 (계좌이체 대기 상태)
 export async function createEnrollmentAction(formData: FormData) {
@@ -11,7 +11,7 @@ export async function createEnrollmentAction(formData: FormData) {
   const session = await requireSession(`/enroll/${slug}`);
 
   const course = await prisma.course.findUnique({ where: { slug } });
-  if (!course) redirect("/enroll");
+  if (!course || !course.isActive) redirect("/enroll");
 
   const existing = await prisma.enrollment.findUnique({
     where: { userId_courseId: { userId: session.userId, courseId: course!.id } },
@@ -45,7 +45,7 @@ export async function createPackageEnrollmentAction() {
   const session = await requireSession("/enroll/package");
 
   const courses = await prisma.course.findMany({
-    where: { isActive: true },
+    where: { isActive: true, category: PACKAGE_CATEGORY },
     orderBy: { id: "asc" },
   });
   if (courses.length === 0) redirect("/enroll");
