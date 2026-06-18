@@ -19,6 +19,9 @@ type Props = {
   title: string;
   mockNumber?: number;
   callComplete?: boolean;
+  alwaysRecord?: boolean;
+  hideReport?: boolean;
+  answerApi?: string;
 };
 
 export const RESULT_KEY = "bm_result";
@@ -35,6 +38,9 @@ export default function QuizRunner({
   title,
   mockNumber,
   callComplete = true,
+  alwaysRecord = false,
+  hideReport = false,
+  answerApi = "/api/learn/answer",
 }: Props) {
   const router = useRouter();
   const total = questions.length;
@@ -87,11 +93,11 @@ export default function QuizRunner({
 
   const recordAnswer = useCallback(
     (idx: number, sel: number | null, isCorrect: boolean, timeSpent: number) => {
-      if (revealMode) return; // 1회차는 기록하지 않음
-      if (recordedRef.current.has(idx)) return; // 중복 전송 방지
+      if (revealMode && !alwaysRecord) return;
+      if (recordedRef.current.has(idx)) return;
       recordedRef.current.add(idx);
       const target = questions[idx];
-      fetch("/api/learn/answer", {
+      fetch(answerApi, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -105,7 +111,7 @@ export default function QuizRunner({
         }),
       }).catch(() => {});
     },
-    [questions, sessionType, mockNumber, revealMode]
+    [questions, sessionType, mockNumber, revealMode, alwaysRecord, answerApi]
   );
 
   const setAnswerAt = useCallback((idx: number, rec: AnswerRecord) => {
@@ -354,7 +360,7 @@ export default function QuizRunner({
       <div className="card animate-fade-in">
         <div className="mb-1 flex items-center justify-between gap-2">
           <p className="text-sm font-semibold text-primary">{title}</p>
-          <ReportButton questionId={q.id} />
+          {!hideReport && <ReportButton questionId={q.id} />}
         </div>
         <h2 className="mb-5 text-lg font-bold leading-relaxed text-beauty-neutral">
           Q{index + 1}. {q.content}

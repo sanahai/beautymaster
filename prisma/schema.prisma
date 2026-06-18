@@ -35,12 +35,29 @@ model User {
 
   enrollments      Enrollment[]
   answers          UserAnswer[]
+  academyAnswers   AcademyUserAnswer[]
   mockSessions     MockSession[]
   wrongNotes       WrongNote[]
   learningProgress LearningProgress[]
   consents         UserConsent[]
   reports          QuestionReport[]
   customQuestions  AcademyCustomQuestion[] @relation("QuestionAuthor")
+}
+
+model AcademyUserAnswer {
+  id                Int      @id @default(autoincrement())
+  userId            Int
+  academyQuestionId Int
+  selected          Int?
+  isCorrect         Boolean?
+  timeSpent         Int?
+  answeredAt        DateTime @default(now())
+
+  user     User                  @relation(fields: [userId], references: [id])
+  question AcademyCustomQuestion @relation(fields: [academyQuestionId], references: [id])
+
+  @@index([userId])
+  @@index([academyQuestionId])
 }
 
 model Course {
@@ -277,6 +294,7 @@ model AcademyCustomQuestion {
 
   academy   Academy @relation(fields: [academyId], references: [id], onDelete: Cascade)
   createdBy User?   @relation("QuestionAuthor", fields: [createdById], references: [id])
+  answers   AcademyUserAnswer[]
 
   @@index([academyId])
 }

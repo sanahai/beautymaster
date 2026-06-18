@@ -20,7 +20,8 @@ export type SessionType =
   | "round3"
   | "wrong_round"
   | "wrong_mock"
-  | "mock";
+  | "mock"
+  | "academy";
 
 export type WrongItem = {
   id: number;

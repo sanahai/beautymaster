@@ -16,13 +16,17 @@ export default async function AcademyReportPage() {
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-b2b-primary">학습 리포트</h1>
-        <a
-          href="/api/academy/report"
-          className="b2b-btn-accent"
-          download
-        >
-          CSV 다운로드
-        </a>
+        <div className="flex flex-wrap gap-2">
+          <a href="/api/academy/report" className="b2b-btn-accent" download>
+            CSV 다운로드
+          </a>
+          <a href="/api/academy/report/pdf" className="b2b-btn-primary" download>
+            PDF 다운로드
+          </a>
+          <Link href="/academy/report/print" target="_blank" className="rounded-lg border border-b2b-border px-4 py-2 text-sm font-semibold">
+            인쇄/PDF 저장
+          </Link>
+        </div>
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">

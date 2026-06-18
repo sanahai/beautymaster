@@ -82,6 +82,7 @@ async function main() {
   await prisma.questionReport.deleteMany();
   await prisma.userConsent.deleteMany();
   await prisma.academyCustomQuestion.deleteMany();
+  await prisma.academyUserAnswer.deleteMany();
   await prisma.academyInvite.deleteMany();
   await prisma.academyGroup.deleteMany();
   await prisma.academyBranch.deleteMany();

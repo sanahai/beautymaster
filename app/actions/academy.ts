@@ -10,6 +10,7 @@ import {
   TIER_MAX_TEACHERS,
   type AcademyTier,
 } from "@/lib/academy";
+import { sendTeacherInviteEmail, sendAcademyOwnerInviteEmail } from "@/lib/email";
 import { requireAcademyOwner, requireAcademyStaff } from "@/lib/academy-access";
 import crypto from "crypto";
 
@@ -152,8 +153,11 @@ export async function inviteTeacherAction(formData: FormData) {
     },
   });
 
+  const setupUrl = `/academy/setup?token=${token}`;
+  await sendTeacherInviteEmail({ to: email, academyName: academy.name, setupUrl });
+
   revalidatePath("/academy/teachers");
-  return { ok: true, setupUrl: `/academy/setup?token=${token}` };
+  return { ok: true, setupUrl };
 }
 
 export async function updateAcademySettingsAction(formData: FormData): Promise<void> {
@@ -222,7 +226,15 @@ export async function createAcademyWithInviteAction(formData: FormData) {
     data: { academyId: academy.id, email: ownerEmail, role: "owner", token, expiresAt },
   });
 
-  return { academyId: academy.id, setupUrl: `/academy/setup?token=${token}`, code: academy.code };
+  const setupUrl = `/academy/setup?token=${token}`;
+  await sendAcademyOwnerInviteEmail({
+    to: ownerEmail,
+    academyName: name,
+    setupUrl,
+    code: academy.code,
+  });
+
+  return { academyId: academy.id, setupUrl, code: academy.code };
 }
 
 export async function deleteCustomQuestionAction(formData: FormData): Promise<void> {

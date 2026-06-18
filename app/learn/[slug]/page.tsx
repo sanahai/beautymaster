@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import { requireEnrollment, getOrCreateProgress } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
 import { computeSteps, computeProgressBars } from "@/lib/progress";
+import { tierAtLeast } from "@/lib/academy";
 
 export default async function LearnHomePage({
   params,
@@ -11,6 +12,16 @@ export default async function LearnHomePage({
 }) {
   const { session, course, isAdmin } = await requireEnrollment(params.slug);
   const progress = await getOrCreateProgress(session.userId, course.id);
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    include: { academy: true },
+  });
+  const academyQuestionCount =
+    user?.academyId && user.academy && tierAtLeast(user.academy.tier, "premium")
+      ? await prisma.academyCustomQuestion.count({ where: { academyId: user.academyId } })
+      : 0;
+
   const steps = computeSteps(course.slug, progress, isAdmin);
   const { overallPct, roundMockPct } = computeProgressBars(
     course.slug,
@@ -88,6 +99,23 @@ export default async function LearnHomePage({
             </div>
           </div>
         </div>
+
+        {academyQuestionCount > 0 && user?.academy && (
+          <Link href={`/learn/${params.slug}/academy`} className="mb-8 block">
+            <div className="flex items-center gap-4 rounded-card border-2 border-b2b-accent/40 bg-gradient-to-r from-[#0F172A]/5 to-[#E91E8C]/10 p-4 transition-all hover:shadow-cardHover">
+              <div className="text-3xl">🏫</div>
+              <div className="flex-1">
+                <h3 className="font-bold text-beauty-neutral">{user.academy.name} 학원 문제</h3>
+                <p className="text-sm text-beauty-gray">
+                  학원 전용 문제 {academyQuestionCount}개 · 별도 학습 탭
+                </p>
+              </div>
+              <span className="rounded-btn bg-b2b-accent px-4 py-2 text-sm font-bold text-white">
+                시작
+              </span>
+            </div>
+          </Link>
+        )}
 
         {/* 단계 카드 */}
         <div className="space-y-3">
