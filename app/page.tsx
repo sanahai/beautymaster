@@ -4,15 +4,10 @@ import HeroCarousel from "@/components/HeroCarousel";
 import { AIExplanationSection } from "@/components/HeroAndAIExplanation_1";
 import EnrollCTA from "@/components/consent/EnrollCTA";
 import { COURSES, PACKAGE_PRICE } from "@/lib/courses";
-import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
 export default async function LandingPage() {
   const session = await getSession();
-  // 누적 합격생(전 과정 완주) 수
-  const graduates = await prisma.learningProgress.count({
-    where: { wrongMockDone: true, user: { role: { not: "admin" } } },
-  });
 
   const flow = [
     { icon: "🎁", title: "무료체험", desc: "100문제 무제한" },
@@ -61,23 +56,6 @@ export default async function LandingPage() {
     <>
       <Header />
       <main>
-        {/* 상단 안내사항 */}
-        <section className="border-b border-primary-pale bg-primary-pale/40">
-          <div className="mx-auto max-w-6xl px-4 py-4">
-            <div className="rounded-card border border-red-300 bg-white/70 p-5 text-center shadow-card">
-              <p className="mb-2 text-xl font-extrabold text-red-600">중요 안내사항</p>
-              <p className="text-base font-bold leading-relaxed text-black">
-                본 사이트에서 제공하는 문제는 큐넷(Q-Net) 또는 한국산업인력공단의 공식 기출문제가
-                아닙니다.
-              </p>
-              <p className="mt-1 text-base font-bold leading-relaxed text-black">
-                공개된 자격증 기출 경향과 학습 자료를 바탕으로 AI를 활용하여 재구성한 학습용
-                문제입니다.
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* Hero */}
         <section className="relative overflow-hidden bg-gradient-to-b from-primary-pale to-beauty-bg">
           {/* 움직이는 배경 장식 */}
@@ -135,7 +113,7 @@ export default async function LandingPage() {
         <section className="border-y border-primary-pale bg-white">
           <div className="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-4 py-10 text-center md:grid-cols-4">
             {[
-              { num: "1,000+", label: "기출·예상 문제" },
+              { num: "6,648문항", label: "기출·예상 문제" },
               { num: "6회", label: "실전 모의고사" },
               { num: "3단계", label: "반복학습" },
               { num: "합격률 ↑", label: "오답복습 시스템" },
@@ -277,10 +255,11 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* 누적 합격생 배너 */}
+        {/* 문제 제공 배너 */}
         <section className="bg-primary py-10 text-center">
           <p className="text-2xl font-bold text-white sm:text-3xl">
-            지금까지 <span className="font-extrabold text-yellow-300">{(graduates + 98).toLocaleString()}명</span>이 이 방법으로 합격했습니다
+            지금까지 총{" "}
+            <span className="font-extrabold text-yellow-300">6,648문제</span>를 제공하고 있습니다.
           </p>
         </section>
 

@@ -199,6 +199,14 @@ export function AIExplanationSection() {
       diagnosis:
         "‘대비 = 비슷한 색’으로 혼동하는 오개념입니다. 보색은 색상환에서 정반대(마주보는) 색으로, 함께 배치하면 서로를 더 선명하게 만듭니다.",
     },
+    {
+      subject: "이용사 · 이용이론",
+      question: "면도 시 사용하는 기구로 옳은 것은?",
+      picked: "③ 전기면도기(닫힌 칼날)",
+      answer: "① 면도용 스트레이트 레이저",
+      diagnosis:
+        "전기면도기와 면도용 레이저는 구조·용도가 다릅니다. ‘손 면도 = 스트레이트 레이저, 기계 면도 = 전기면도기’로 구분해 외우세요.",
+    },
   ];
 
   const [active, setActive] = useState(0);
