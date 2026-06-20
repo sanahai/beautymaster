@@ -11,6 +11,7 @@ type Props = {
 export default function AcademyPortalHeader({ academy, subdomain }: Props) {
   const signupHref = academySignupUrl(academy.code);
   const loginHref = `/login?redirect=${encodeURIComponent(`/a/${subdomain}/dashboard`)}`;
+  const adminLoginHref = `/login?redirect=${encodeURIComponent(`/a/${subdomain}/admin`)}`;
 
   return (
     <header
@@ -36,6 +37,9 @@ export default function AcademyPortalHeader({ academy, subdomain }: Props) {
           </Link>
           <Link href={loginHref} className="rounded-lg px-3 py-2 text-sm font-semibold text-white/90 hover:bg-white/10">
             로그인
+          </Link>
+          <Link href={adminLoginHref} className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-white/70 hover:bg-white/10 sm:inline">
+            관리자
           </Link>
           <Link
             href={signupHref}

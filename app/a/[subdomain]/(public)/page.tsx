@@ -25,5 +25,5 @@ export default async function AcademyPortalPage({
     );
   }
 
-  return <AcademyPortalHome academy={academy} />;
+  return <AcademyPortalHome academy={academy} subdomain={params.subdomain} />;
 }

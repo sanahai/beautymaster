@@ -9,6 +9,7 @@ import {
   createSession,
   destroySession,
 } from "@/lib/auth";
+import { resolvePostLoginRedirect } from "@/lib/post-login-redirect";
 
 export type AuthState = { error?: string } | undefined;
 
@@ -111,10 +112,7 @@ export async function loginAction(
     data: { lastActiveAt: new Date() },
   });
 
-  const staffRoles = new Set(["owner", "teacher", "branch_admin"]);
-  if (user.role === "admin") redirect("/admin");
-  if (staffRoles.has(user.role)) redirect("/academy/dashboard");
-  redirect(redirectTo);
+  redirect(resolvePostLoginRedirect(user.role, redirectTo));
 }
 
 export async function logoutAction() {

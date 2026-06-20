@@ -5,11 +5,14 @@ import { tierAtLeast } from "@/lib/academy";
 
 type Props = {
   academy: AcademyPortal;
+  subdomain: string;
 };
 
-export default function AcademyPortalHome({ academy }: Props) {
+export default function AcademyPortalHome({ academy, subdomain }: Props) {
   const brand = academy.primaryColor || "#0F172A";
   const signupHref = academySignupUrl(academy.code);
+  const studentPortalHref = `/a/${subdomain}/dashboard`;
+  const adminPortalHref = `/a/${subdomain}/admin`;
   const hasPremium = tierAtLeast(academy.tier, "premium");
 
   const flow = [
@@ -64,6 +67,12 @@ export default function AcademyPortalHome({ academy }: Props) {
           <div className="flex flex-wrap justify-center gap-4">
             <Link href={signupHref} className="rounded-xl bg-white px-8 py-4 text-lg font-bold text-slate-900 shadow-lg hover:bg-white/95">
               무료체험 · 회원가입
+            </Link>
+            <Link href={studentPortalHref} className="rounded-xl border-2 border-white/80 px-8 py-4 text-lg font-semibold hover:bg-white/10">
+              수강생 포털
+            </Link>
+            <Link href={adminPortalHref} className="rounded-xl border-2 border-white/60 px-6 py-4 text-sm font-semibold hover:bg-white/10">
+              관리자 포털
             </Link>
             <Link href="/trial" className="rounded-xl border-2 border-white/80 px-8 py-4 text-lg font-semibold hover:bg-white/10">
               100문제 체험
