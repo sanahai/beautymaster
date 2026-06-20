@@ -2,47 +2,65 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { AcademyTier } from "@/lib/academy";
-import { tierAtLeast } from "@/lib/academy";
+import { TENANT_ADMIN_NAV, tenantAdminHref } from "@/lib/tenant-admin-nav";
 
-const NAV = [
-  { href: "/academy/dashboard", label: "개요", icon: "📊", min: "basic" as AcademyTier },
-  { href: "/academy/dashboard?tab=students", label: "학생", icon: "👥", min: "basic" as AcademyTier },
-  { href: "/academy/groups", label: "반 관리", icon: "🏫", min: "standard" as AcademyTier },
-  { href: "/academy/teachers", label: "강사", icon: "👨‍🏫", min: "standard" as AcademyTier },
-  { href: "/academy/report", label: "리포트", icon: "📄", min: "standard" as AcademyTier },
-  { href: "/academy/branches", label: "지점", icon: "🏢", min: "premium" as AcademyTier },
-  { href: "/academy/analytics", label: "분석", icon: "📈", min: "premium" as AcademyTier },
-  { href: "/academy/questions", label: "문제", icon: "📝", min: "premium" as AcademyTier },
-  { href: "/academy/settings", label: "설정", icon: "⚙️", min: "standard" as AcademyTier },
-];
-
-export default function AcademySidebar({ tier }: { tier: string }) {
+export default function AcademySidebar({ academyName }: { academyName: string }) {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-60 shrink-0 bg-b2b-primary p-4 lg:block">
-      <nav className="space-y-1">
-        {NAV.map((item) => {
-          const locked = !tierAtLeast(tier, item.min);
-          const active = pathname === item.href || pathname.startsWith(item.href + "/");
+    <aside className="hidden w-56 shrink-0 flex-col border-r border-teal-800/30 bg-gradient-to-b from-slate-900 to-slate-800 lg:flex">
+      <div className="border-b border-slate-700 p-4">
+        <p className="text-xs font-bold uppercase tracking-wide text-teal-400">학원 관리자</p>
+        <p className="mt-1 truncate text-sm font-bold text-white">{academyName}</p>
+      </div>
+      <nav className="flex-1 space-y-0.5 p-3">
+        {TENANT_ADMIN_NAV.map((item) => {
+          const href = tenantAdminHref(item.href);
+          const active =
+            pathname === href ||
+            (item.href !== "/dashboard" && pathname.startsWith(href));
           return (
             <Link
               key={item.href}
-              href={locked ? `/academy/dashboard?error=upgrade&from=${item.href}` : item.href}
-              className={`flex items-center gap-2 rounded-lg px-4 py-3 text-sm ${
+              href={href}
+              className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
                 active
-                  ? "bg-b2b-accent/20 font-semibold text-white"
-                  : "text-slate-300 hover:bg-white/10"
-              } ${locked ? "opacity-50" : ""}`}
+                  ? "bg-teal-600/30 text-teal-100"
+                  : "text-slate-400 hover:bg-slate-800 hover:text-white"
+              }`}
             >
               <span>{item.icon}</span>
               {item.label}
-              {locked && <span className="ml-auto text-xs">🔒</span>}
             </Link>
           );
         })}
       </nav>
+      <div className="border-t border-slate-700 p-4 text-xs text-slate-500">
+        회원사 전용 · 우리 학원 수강생만 조회
+      </div>
     </aside>
+  );
+}
+
+export function AcademyMobileNav() {
+  const pathname = usePathname();
+  return (
+    <nav className="mb-4 flex flex-wrap gap-2 lg:hidden">
+      {TENANT_ADMIN_NAV.map((item) => {
+        const href = tenantAdminHref(item.href);
+        const active = pathname === href || pathname.startsWith(`${href}/`);
+        return (
+          <Link
+            key={item.href}
+            href={href}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+              active ? "bg-teal-700 text-white" : "bg-white text-slate-700 shadow-sm"
+            }`}
+          >
+            {item.icon} {item.label}
+          </Link>
+        );
+      })}
+    </nav>
   );
 }

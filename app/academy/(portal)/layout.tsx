@@ -1,5 +1,5 @@
 import AcademyHeader from "@/components/academy/AcademyHeader";
-import AcademySidebar from "@/components/academy/AcademySidebar";
+import AcademySidebar, { AcademyMobileNav } from "@/components/academy/AcademySidebar";
 import { requireAcademyStaff } from "@/lib/academy-access";
 
 export const dynamic = "force-dynamic";
@@ -8,11 +8,14 @@ export default async function AcademyPortalLayout({ children }: { children: Reac
   const { academy } = await requireAcademyStaff();
 
   return (
-    <div className="min-h-screen bg-b2b-light">
-      <AcademyHeader academyName={academy.name} logoUrl={academy.logoUrl} tier={academy.tier} />
+    <div className="min-h-screen bg-slate-100">
+      <AcademyHeader academyName={academy.name} logoUrl={academy.logoUrl} />
       <div className="mx-auto flex max-w-7xl">
-        {academy.tier !== "basic" && <AcademySidebar tier={academy.tier} />}
-        <main className="flex-1 px-4 py-8 sm:px-6">{children}</main>
+        <AcademySidebar academyName={academy.name} />
+        <main className="flex-1 px-4 py-6 sm:px-6 lg:py-8">
+          <AcademyMobileNav />
+          {children}
+        </main>
       </div>
     </div>
   );

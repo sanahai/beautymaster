@@ -22,29 +22,26 @@ export default async function SubsiteAdminStudentsPage({
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white">학생 관리</h1>
-          <p className="text-slate-400">총 {students.length}명</p>
-        </div>
-        <Link href="/academy/dashboard" className="text-sm text-slate-400 hover:text-white">
-          B2B 상세 관리 →
-        </Link>
+      <div>
+        <h1 className="text-2xl font-bold text-white">수강생관리</h1>
+        <p className="text-slate-400">총 {students.length}명</p>
       </div>
-      <form className="flex gap-2">
-        <input
-          name="q"
-          defaultValue={searchParams?.q}
-          placeholder="이름 검색"
-          className="rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 text-sm text-white placeholder:text-slate-500"
-        />
-      </form>
+      <div className="flex flex-wrap gap-2">
+        {["", "active", "warning"].map((f) => (
+          <Link
+            key={f || "all"}
+            href={subsitePath(params.subdomain, `/admin/students${f ? `?filter=${f}` : ""}`)}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold ${
+              (searchParams?.filter || "") === f ? "bg-teal-700 text-white" : "border border-slate-600 text-slate-400"
+            }`}
+          >
+            {f === "" ? "전체" : f === "active" ? "활성" : "주의"}
+          </Link>
+        ))}
+      </div>
       <div className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-800">
         <StudentTable students={students} />
       </div>
-      <Link href={subsitePath(params.subdomain, "/admin")} className="text-sm text-slate-400 hover:text-white">
-        ← 대시보드
-      </Link>
     </div>
   );
 }

@@ -45,8 +45,8 @@ export default function SubsiteHeader({ subdomain, academyName, logoUrl, brand, 
             </span>
           </Link>
           {isAdmin && (
-            <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-bold text-amber-300">
-              관리자 모드
+            <span className="rounded-full bg-teal-500/20 px-2 py-0.5 text-xs font-bold text-teal-300">
+              학원 관리자
             </span>
           )}
         </div>

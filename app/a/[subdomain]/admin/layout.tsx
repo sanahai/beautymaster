@@ -19,7 +19,11 @@ export default async function AdminSubsiteLayout({
 
   return (
     <div className="flex min-h-screen bg-slate-900 text-white">
-      <SidebarAdmin subdomain={params.subdomain} tier={academy.tier} studentCount={stats.total} />
+      <SidebarAdmin
+        subdomain={params.subdomain}
+        academyName={academy.name}
+        studentCount={stats.total}
+      />
       <div className="flex min-h-screen flex-1 flex-col">
         <SubsiteHeader
           subdomain={params.subdomain}

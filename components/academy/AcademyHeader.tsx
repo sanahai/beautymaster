@@ -7,28 +7,31 @@ import { logoutAction } from "@/app/actions/auth";
 type Props = {
   academyName: string;
   logoUrl?: string | null;
-  tier?: string;
 };
 
-export default function AcademyHeader({ academyName, logoUrl, tier }: Props) {
+export default function AcademyHeader({ academyName, logoUrl }: Props) {
   return (
-    <header className="flex items-center justify-between bg-b2b-primary px-6 py-4 text-white">
+    <header className="flex items-center justify-between border-b border-teal-900/40 bg-slate-900 px-6 py-3 text-white">
       <div className="flex items-center gap-3">
-        <Link href="/academy/dashboard">
-          <Image src="/logo.png" alt="BEAUTYmaster" width={120} height={36} className="h-8 w-auto brightness-0 invert" />
+        <Link href="/academy/dashboard" className="flex items-center gap-2">
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoUrl} alt={academyName} className="h-8 max-w-[100px] object-contain" />
+          ) : (
+            <Image src="/logo.png" alt="BEAUTYmaster" width={100} height={30} className="h-7 w-auto brightness-0 invert opacity-90" />
+          )}
+          <span className="hidden text-sm font-bold sm:inline">{academyName}</span>
         </Link>
-        {tier !== "basic" && logoUrl && (
-          <>
-            <span className="text-slate-500">|</span>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logoUrl} alt={academyName} className="h-7 max-w-[80px] object-contain" />
-          </>
-        )}
+        <span className="rounded-full bg-teal-500/20 px-2.5 py-0.5 text-xs font-bold text-teal-300">
+          학원 관리자
+        </span>
       </div>
       <div className="flex items-center gap-4">
-        <span className="hidden text-sm text-slate-300 sm:inline">{academyName}</span>
+        <Link href="/" className="hidden text-xs text-slate-400 hover:text-white sm:inline">
+          메인 사이트
+        </Link>
         <form action={logoutAction}>
-          <button type="submit" className="text-sm text-slate-300 hover:text-white">
+          <button type="submit" className="text-sm text-slate-400 hover:text-white">
             로그아웃
           </button>
         </form>
