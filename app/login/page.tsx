@@ -28,7 +28,9 @@ export default async function LoginPage({
         <LoginForm redirectTo={redirectTo} />
       </div>
       <p className="mt-6 text-center text-xs text-beauty-gray">
-        데모 계정 — 학생: student@test.com / test1234 · 관리자: admin@beautymaster.kr / admin1234
+        데모 — 학생: student@test.com / test1234 · 통합관리자: admin@beautymaster.kr / admin1234
+        <br />
+        원장: owner@demo.academy 또는 sanahai@naver.com / owner1234
       </p>
     </main>
   );

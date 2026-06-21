@@ -18,7 +18,9 @@ export async function GET() {
       orderBy: { id: "asc" },
     });
 
-    const [owner] = await Promise.all([
+    const [academyCount, userCount, owner] = await Promise.all([
+      prisma.academy.count(),
+      prisma.user.count(),
       prisma.user.findFirst({
         where: { role: "owner" },
         select: { id: true, email: true, academyId: true },
@@ -38,6 +40,7 @@ export async function GET() {
     return NextResponse.json({
       ok: true,
       academyCount: academies.length,
+      userCount,
       sampleOwner: owner,
       portals,
       db: "connected",
