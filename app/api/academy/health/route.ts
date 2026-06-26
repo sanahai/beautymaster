@@ -18,8 +18,7 @@ export async function GET() {
       orderBy: { id: "asc" },
     });
 
-    const [academyCount, userCount, owner] = await Promise.all([
-      prisma.academy.count(),
+    const [userCount, owner] = await Promise.all([
       prisma.user.count(),
       prisma.user.findFirst({
         where: { role: "owner" },
